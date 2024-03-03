@@ -73,9 +73,15 @@ public class App {
                 Area[row][col] = new JPanel();
                 Area[row][col].setSize(new Dimension( screenSize.width/10, (screenSize.height * 9 / 100) ) );
                 Area[row][col].setBackground(cellColor);
+                Area[row][col].setName( Integer.toString(row) + Integer.toString(col) );
+
                 RootPanel.add(Area[row][col]);
             }
         }
+    }
+
+    public void checkNeighbors (String name) {
+        System.out.println(name);
     }
 
 
@@ -149,7 +155,20 @@ public class App {
             }
         });
 
+        //initialize play area:
         app.fillPlayArea(PlayArea, app.area, app.Area);
         RootFrame.repaint();
+
+        for (int row = 0; row < 10; ++row) {
+            for (int col = 0; col < 10; ++col) {
+                app.Area[row][col].addMouseListener( new MouseAdapter() {
+                    public void mousePressed( MouseEvent ev) {
+                        if (ev.getSource() instanceof JPanel) {
+                            app.checkNeighbors( ev.getComponent().getName() );
+                        }
+                    }
+                });
+            }
+        }
     }
 }
