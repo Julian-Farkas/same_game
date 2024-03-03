@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 
 public class App {
@@ -21,7 +22,7 @@ public class App {
     protected int[][] area = new int[10][10];
     protected JPanel[][] Area = new JPanel[10][10];
 
-    private Dimension screenSize = new Dimension(800,600);
+    private Dimension screenSize = new Dimension(1000,800);
 
     //getters and setters:
 
@@ -73,6 +74,8 @@ public class App {
                 Area[row][col] = new JPanel();
                 Area[row][col].setSize(new Dimension( screenSize.width/10, (screenSize.height * 9 / 100) ) );
                 Area[row][col].setBackground(cellColor);
+
+                //set unique id for each block based on location:
                 Area[row][col].setName( Integer.toString(row) + Integer.toString(col) );
 
                 RootPanel.add(Area[row][col]);
@@ -80,11 +83,35 @@ public class App {
         }
     }
 
-    public void checkNeighbors (String name) {
-        System.out.println(name);
+    //temporary variables to cache every mached block:
+    private ArrayList<Integer> matches = new ArrayList<Integer>();
+
+
+    public void checkNeighbors (int current, int previous) {
+        int currRow = current / 10;
+        int currCol = current % 10;
+
+        int prevRow = previous / 10;
+        int prevCol = previous % 10;
+
+        //return if current cell color doesn't match previous cell color:
+        if (area[currRow][currCol] != area[prevRow][prevCol]) return;
+
+        //check whether current cell is in matches or we have to add it:
+        if (matches.contains( current)) {
+            return;
+        } else {
+            matches.add(current);
+        }
+
+        //if neighbors not out of bound call the check recursively on neighbors:
+        if (currRow+1 < 10) checkNeighbors( current + 10, current);
+        if (currRow-1 < 10) checkNeighbors( current - 10, current);
+        if (currCol+1 < 10) checkNeighbors( current + 1, current);
+        if (currCol-1 < 10) checkNeighbors( current - 1, current);
+
+        return;
     }
-
-
 
     public static void main(String[] args) {
 
@@ -106,7 +133,7 @@ public class App {
         PlayArea.setLayout(new GridLayout(10,10));
 
         // intitial size settings of components:
-        RootFrame.setSize(800, 600);
+        RootFrame.setSize(1000, 800);
         Score.setPreferredSize(new Dimension(app.screenSize.width/2, app.screenSize.height/10));
         Highscore.setPreferredSize(new Dimension(app.screenSize.width/2, app.screenSize.height/10));
         PlayAreaConstraints.setSize(new Dimension( app.screenSize.width, app.screenSize.height * 8 / 10 ) );
@@ -159,12 +186,17 @@ public class App {
         app.fillPlayArea(PlayArea, app.area, app.Area);
         RootFrame.repaint();
 
+        //add mouse listener to colored blocks:
+
         for (int row = 0; row < 10; ++row) {
             for (int col = 0; col < 10; ++col) {
                 app.Area[row][col].addMouseListener( new MouseAdapter() {
                     public void mousePressed( MouseEvent ev) {
                         if (ev.getSource() instanceof JPanel) {
-                            app.checkNeighbors( ev.getComponent().getName() );
+                            int name = Integer.valueOf(ev.getComponent().getName());
+                            app.checkNeighbors( name, name );
+                            for (int match : app.matches) {System.out.println(match + " ");}
+                            app.matches.clear();
                         }
                     }
                 });
