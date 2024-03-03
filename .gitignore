@@ -1,0 +1,8 @@
+# ignore all not excluded files:
+*
+
+# include following files:
+
+!.java
+
+!.gitignore
