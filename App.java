@@ -85,11 +85,18 @@ public class App {
 
     //temporary variables to cache every mached block:
     private ArrayList<Integer> matches = new ArrayList<Integer>();
+    private boolean containsMatch = false;
 
 
     public void checkNeighbors (int current, int previous) {
+
+        //get current row and check if out-of bounds:
         int currRow = current / 10;
+        if (currRow  < 0 || currRow > 9) return;
+
+        //get current column and check if out-of-bounds:
         int currCol = current % 10;
+        if (currCol < 0 || currCol > 9) return;
 
         int prevRow = previous / 10;
         int prevCol = previous % 10;
@@ -104,14 +111,24 @@ public class App {
             matches.add(current);
         }
 
-        //if neighbors not out of bound call the check recursively on neighbors:
-        if (currRow+1 < 10) checkNeighbors( current + 10, current);
-        if (currRow-1 < 10) checkNeighbors( current - 10, current);
-        if (currCol+1 < 10) checkNeighbors( current + 1, current);
-        if (currCol-1 < 10) checkNeighbors( current - 1, current);
+        //recursively check neighbors without wrapping:
+        if (currRow + 1 < 10) checkNeighbors( current + 10, current);
+        if (currRow - 1 > -1) checkNeighbors( current - 10, current);
+        if (currCol + 1 < 10) checkNeighbors( current + 1, current);
+        if (currCol - 1 > -1) checkNeighbors( current - 1, current);
 
         return;
     }
+
+    //sets cells with id contained in matches to white:
+
+    public void removeCells(ArrayList<Integer> matches, JPanel[][] PlayArea) {
+
+        for (int match : matches) {
+            PlayArea[ match / 10 ][ match % 10 ].setBackground(Color.decode(colors[0]));
+        }
+    }
+    
 
     public static void main(String[] args) {
 
@@ -194,9 +211,14 @@ public class App {
                     public void mousePressed( MouseEvent ev) {
                         if (ev.getSource() instanceof JPanel) {
                             int name = Integer.valueOf(ev.getComponent().getName());
-                            app.checkNeighbors( name, name );
-                            for (int match : app.matches) {System.out.println(match + " ");}
-                            app.matches.clear();
+
+                            //check neighbors for matches with out-of-bounds-check:               
+                            if (name / 10 + 1 < 10) app.checkNeighbors(name + 10, name);
+                            if (name / 10 - 1 > -1) app.checkNeighbors(name - 10, name);
+                            if (name % 10 + 1 < 10) app.checkNeighbors(name + 1, name);
+                            if (name % 10 - 1 > -1) app.checkNeighbors(name - 1, name);
+
+                            app.removeCells(app.matches, app.Area);
                         }
                     }
                 });
