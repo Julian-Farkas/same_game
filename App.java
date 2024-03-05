@@ -7,6 +7,11 @@ import java.awt.GridLayout;
 import java.awt.event.*;
 import java.util.ArrayList;
 
+/*
+ * TODO:
+ * App.draw issue in containsMatch-check!
+ */
+
 
 public class App {
 
@@ -46,18 +51,18 @@ public class App {
      * empty. First the area-array gets filles with numbers in the range of 
      * the colors-array.
      */
-    public void fillPlayArea (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea, JLabel Score) {
+    public void fillPlayArea (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea, JLabel Score, JLabel Highscore) {
 
         for (int row = 0; row < 10; ++row) {
             for (int col = 0; col < 10; ++col) {
                 area[row][col] = (int) (Math.random() * 5 + 1);
             }
         }
-        draw(RootFrame, RootPanel, area, PlayArea, Score);
+        draw(RootFrame, RootPanel, area, PlayArea, Score, Highscore);
     }
 
     //function to paint the play area:
-    public void draw (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea, JLabel Score) {
+    public void draw (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea, JLabel Score, JLabel Highscore) {
 
         Color cellColor = null;
 
@@ -98,7 +103,18 @@ public class App {
     
                             removeCells(matches, Area, area);
                             Score.setText(Long.toString(score));
-                            draw(RootFrame, RootPanel, area, PlayArea, Score);
+
+                            // if there are no matches remaining, set new highscore and reset board:
+                            if (!containsMatch) {
+                                if (score > highscore) {
+                                     Highscore.setText(Long.toString(score));
+                                     score = 0;
+                                     Score.setText("0");
+                                }
+                                fillPlayArea(RootFrame, RootPanel, area, PlayArea, Score, Highscore); // draws 2 times when game over... fix later
+                            }
+
+                            draw(RootFrame, RootPanel, area, PlayArea, Score, Highscore);
                             RootFrame.revalidate();
                             //printMaxrix();
                         }
@@ -190,6 +206,9 @@ public class App {
          * colored cell remaining: 
          */
 
+        //reset containsMatch for checks:
+        containsMatch = false;
+
         int borderRow = 0;
         int row = 9;
 
@@ -197,6 +216,10 @@ public class App {
             
             for (borderRow = 0; borderRow < 10; ++borderRow){
                 for (row = 9; row > borderRow; --row) {
+                    //check wether there are matching blocks in column:
+                    if (area[row][col] > 0 && area[row][col] == area[row - 1][col]) containsMatch = true;
+
+                    //switch cells:
                     if (area[row][col] == 0 && area[row - 1][col] > 0) {
                         
                         area[row][col] = area[row - 1][col];
@@ -218,7 +241,10 @@ public class App {
             
             for (borderCol = 9; borderCol > -1; --borderCol) {
                 for (col = 0; col < borderCol; ++col) {
+                    //check wether there are matching blocks in row:
+                    if (area[row][col] > 0 && area[row][col] == area[row][col + 1]) containsMatch = true;
 
+                    //switch cells:
                     if ( area[row][col] == 0 && area[row][col + 1] > 0) {
                         area[row][col] = area[row][col + 1];
                         area[row][col + 1] = 0;
@@ -226,6 +252,7 @@ public class App {
                 }
             }
         }
+        System.out.println(containsMatch);
     }
 
     public static void main(String[] args) {
@@ -298,7 +325,7 @@ public class App {
         });
 
         //initialize play area:
-        app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score);
+        app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score, Highscore);
         RootFrame.repaint();
     }
 }
