@@ -46,20 +46,23 @@ public class App {
      * empty. First the area-array gets filles with numbers in the range of 
      * the colors-array.
      */
-    public void fillPlayArea (JPanel RootPanel, int[][] area, JPanel[][] PlayArea) {
+    public void fillPlayArea (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea) {
 
         for (int row = 0; row < 10; ++row) {
             for (int col = 0; col < 10; ++col) {
                 area[row][col] = (int) (Math.random() * 5 + 1);
             }
         }
-        draw(RootPanel, area, PlayArea);
+        draw(RootFrame, RootPanel, area, PlayArea);
     }
 
     //function to paint the play area:
-    public void draw (JPanel RootPanel, int[][] area, JPanel[][] PlayArea) {
+    public void draw (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea) {
 
         Color cellColor = null;
+
+        //if PlayArea is already poulated, remove all children of RootPanel and repopulate later:
+        RootPanel.removeAll();
         
         for (int row = 0; row < 10; ++row) {
             for (int col = 0; col < 10; ++col) {
@@ -79,8 +82,41 @@ public class App {
                 Area[row][col].setName( Integer.toString(row) + Integer.toString(col) );
 
                 RootPanel.add(Area[row][col]);
+
+                //add mouse listener to colored blocks (excluding white):
+                if (area[row][col] > 0) {
+                Area[row][col].addMouseListener( new MouseAdapter() {
+                    public void mousePressed( MouseEvent ev) {
+                        if (ev.getSource() instanceof JPanel) {
+                            int name = Integer.valueOf(ev.getComponent().getName());
+    
+                            //check neighbors for matches with out-of-bounds-check:               
+                            if (name / 10 + 1 < 10) checkNeighbors(name + 10, name);
+                            if (name / 10 - 1 > -1) checkNeighbors(name - 10, name);
+                            if (name % 10 + 1 < 10) checkNeighbors(name + 1, name);
+                            if (name % 10 - 1 > -1) checkNeighbors(name - 1, name);
+    
+                            removeCells(matches, Area, area);
+                            draw(RootFrame, RootPanel, area, PlayArea);
+                            RootFrame.revalidate();
+                            printMaxrix();
+                        }
+                    }
+                });
+                }
             }
         }
+    }
+
+    public void printMaxrix(){
+        for (int i = 0; i < 10; ++i){
+            for (int j = 0; j < 10; ++j){
+                System.out.print(area[i][j] + " ");
+            }
+            System.out.print("\n");
+        }
+        System.out.print("\n");
+        System.out.flush();
     }
 
     //temporary variables to cache every mached block:
@@ -105,7 +141,7 @@ public class App {
         if (area[currRow][currCol] != area[prevRow][prevCol]) return;
 
         //check whether current cell is in matches or we have to add it:
-        if (matches.contains( current)) {
+        if (matches.contains(current)) {
             return;
         } else {
             matches.add(current);
@@ -122,13 +158,67 @@ public class App {
 
     //sets cells with id contained in matches to white:
 
-    public void removeCells(ArrayList<Integer> matches, JPanel[][] PlayArea) {
+    public void removeCells(ArrayList<Integer> matches, JPanel[][] PlayArea, int[][] area) {
 
         for (int match : matches) {
             PlayArea[ match / 10 ][ match % 10 ].setBackground(Color.decode(colors[0]));
+            area[ match / 10 ][ match % 10 ] = 0;
         }
+
+        matches.removeAll(matches);
+
+        joinDownwards(area);
+    }
+
+    //move all non-white cells upwards:
+    public void joinDownwards (int[][] playArea) {
+
+        /*
+         * looks at each individual column and sets borderRow as a border. The row iterator checks
+         * if the cell itself is white and the cell above is not. When that is the case, it "switches" both cells
+         * and moves one cell up until it reaches the border; the border moves one cell down and each cell below gets
+         * checked again unil the border reaches the bottom row. This ensures that in the worst case where every second
+         * cell is white all cells moves down without checking all white cells above it, where we know that there is no 
+         * colored cell remaining: 
+         */
+
+        int borderRow = 0;
+        int row = 9;
+
+        for (int col = 9; col > -1; --col){
+            
+            for (borderRow = 0; borderRow < 10; ++borderRow){
+                for (row = 9; row > borderRow; --row) {
+                    if (area[row][col] == 0 && area[row - 1][col] > 0) {
+                        
+                        area[row][col] = area[row - 1][col];
+                        area[row - 1][col] = 0;
+                    }
+                }
+            }
+        }
+        joinLeft(playArea);
     }
     
+    public void joinLeft (int[][] playArea) {    
+    //same procedure as joinDownwards, just cells get moved to the left:
+
+        int borderCol = 9;
+        int col = 0;
+
+        for (int row = 9; row > -1; --row) {
+            
+            for (borderCol = 9; borderCol > -1; --borderCol) {
+                for (col = 0; col < borderCol; ++col) {
+
+                    if ( area[row][col] == 0 && area[row][col + 1] > 0) {
+                        area[row][col] = area[row][col + 1];
+                        area[row][col + 1] = 0;
+                    }
+                }
+            }
+        }
+    }
 
     public static void main(String[] args) {
 
@@ -200,29 +290,7 @@ public class App {
         });
 
         //initialize play area:
-        app.fillPlayArea(PlayArea, app.area, app.Area);
+        app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area);
         RootFrame.repaint();
-
-        //add mouse listener to colored blocks:
-
-        for (int row = 0; row < 10; ++row) {
-            for (int col = 0; col < 10; ++col) {
-                app.Area[row][col].addMouseListener( new MouseAdapter() {
-                    public void mousePressed( MouseEvent ev) {
-                        if (ev.getSource() instanceof JPanel) {
-                            int name = Integer.valueOf(ev.getComponent().getName());
-
-                            //check neighbors for matches with out-of-bounds-check:               
-                            if (name / 10 + 1 < 10) app.checkNeighbors(name + 10, name);
-                            if (name / 10 - 1 > -1) app.checkNeighbors(name - 10, name);
-                            if (name % 10 + 1 < 10) app.checkNeighbors(name + 1, name);
-                            if (name % 10 - 1 > -1) app.checkNeighbors(name - 1, name);
-
-                            app.removeCells(app.matches, app.Area);
-                        }
-                    }
-                });
-            }
-        }
     }
 }
