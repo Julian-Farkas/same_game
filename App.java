@@ -12,8 +12,8 @@ public class App {
 
     // local variables off app:
 
-    private int score = 0;
-    private int highscore = 0;
+    private long score = 0;
+    private long highscore = 0;
 
     //array for color creation:
     private final String[] colors = {"0xffffff", "0xff0000", "0x00ff00", "0x0000ff", "0xff8800", "0xaa0066"}; 
@@ -26,10 +26,10 @@ public class App {
 
     //getters and setters:
 
-    public int getScore() {
+    public long getScore() {
         return this.score;
     }
-    public int getHighscore() {
+    public long getHighscore() {
         return this.highscore;
     }
 
@@ -46,18 +46,18 @@ public class App {
      * empty. First the area-array gets filles with numbers in the range of 
      * the colors-array.
      */
-    public void fillPlayArea (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea) {
+    public void fillPlayArea (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea, JLabel Score) {
 
         for (int row = 0; row < 10; ++row) {
             for (int col = 0; col < 10; ++col) {
                 area[row][col] = (int) (Math.random() * 5 + 1);
             }
         }
-        draw(RootFrame, RootPanel, area, PlayArea);
+        draw(RootFrame, RootPanel, area, PlayArea, Score);
     }
 
     //function to paint the play area:
-    public void draw (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea) {
+    public void draw (JFrame RootFrame, JPanel RootPanel, int[][] area, JPanel[][] PlayArea, JLabel Score) {
 
         Color cellColor = null;
 
@@ -97,9 +97,10 @@ public class App {
                             if (name % 10 - 1 > -1) checkNeighbors(name - 1, name);
     
                             removeCells(matches, Area, area);
-                            draw(RootFrame, RootPanel, area, PlayArea);
+                            Score.setText(Long.toString(score));
+                            draw(RootFrame, RootPanel, area, PlayArea, Score);
                             RootFrame.revalidate();
-                            printMaxrix();
+                            //printMaxrix();
                         }
                     }
                 });
@@ -164,6 +165,13 @@ public class App {
             PlayArea[ match / 10 ][ match % 10 ].setBackground(Color.decode(colors[0]));
             area[ match / 10 ][ match % 10 ] = 0;
         }
+
+        // score multiplier based on count of removed cells:
+        float scoreMultiplier = 1.0f;
+        for (int match : matches) scoreMultiplier += 0.5f;
+        
+        // calculate new score and applies multiplier:
+        score += matches.size() * scoreMultiplier;
 
         matches.removeAll(matches);
 
@@ -263,8 +271,8 @@ public class App {
         
 
         //initially write score and highscore:
-        Score.setText(Integer.toString(app.getScore()));
-        Highscore.setText(Integer.toString(app.getHighscore()));
+        Score.setText(Long.toString(app.getScore()));
+        Highscore.setText(Long.toString(app.getHighscore()));
 
         //override default close operation so the window event listener can 
         //handle it and do some cleanup before closing:
@@ -290,7 +298,7 @@ public class App {
         });
 
         //initialize play area:
-        app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area);
+        app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score);
         RootFrame.repaint();
     }
 }
