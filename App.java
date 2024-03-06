@@ -105,21 +105,25 @@ public class App {
                             if (name % 10 - 1 > -1) checkNeighbors(name - 1, name);
     
                             removeCells(matches, Area, area);
-                            Score.setText(Long.toString(score));
+                            Score.setText("Score: " + Long.toString(score));
 
                             // if there are no matches remaining, reset board:
                             if (!containsMatch) {
                                 //do not reset score if board gets fully cleared (if bottom left block is white):
-                                if (area[9][0] > 0 && score > highscore) {
-                                    Highscore.setText(Long.toString(score));
-                                    highscore = score;
+                                if (area[9][0] > 0) {
+
+                                    //only set new highscore if score is greater:
+                                        if (score > highscore) {
+                                            Highscore.setText("Highscore: " + Long.toString(score));
+                                            highscore = score;
+                                        }
                                     score = 0;
-                                    Score.setText("0");
+                                    Score.setText("Score: 0");
                                 }                                
                                 fillPlayArea(RootFrame, RootPanel, area, PlayArea, Score, Highscore); // draws 2 times when game over... fix later
-                            }
+                            } else {
 
-                            draw(RootFrame, RootPanel, area, PlayArea, Score, Highscore);
+                            draw(RootFrame, RootPanel, area, PlayArea, Score, Highscore); }
                             RootFrame.revalidate();
                             //printMaxrix();
                         }
@@ -287,9 +291,9 @@ public class App {
                         public void actionPerformed(ActionEvent ev) {
                             app.setColorCount(ev.getActionCommand());
                             app.score = 0;
-                            Score.setText("0");
+                            Score.setText("Score: 0");
                             app.highscore = 0;
-                            Highscore.setText("0");
+                            Highscore.setText("Highscore: 0");
                             app.containsMatch = false;
                             app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score, Highscore);
                             RootFrame.validate();
@@ -337,8 +341,8 @@ public class App {
         
 
         //initially write score and highscore:
-        Score.setText(Long.toString(app.getScore()));
-        Highscore.setText(Long.toString(app.getHighscore()));
+        Score.setText("Score: " + Long.toString(app.getScore()));
+        Highscore.setText("Highscore: " + Long.toString(app.getHighscore()));
 
         //override default close operation so the window event listener can 
         //handle it and do some cleanup before closing:
