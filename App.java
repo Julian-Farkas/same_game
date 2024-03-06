@@ -107,14 +107,15 @@ public class App {
                             removeCells(matches, Area, area);
                             Score.setText(Long.toString(score));
 
-                            // if there are no matches remaining, set new highscore and reset board:
+                            // if there are no matches remaining, reset board:
                             if (!containsMatch) {
-                                if (score > highscore) {
+                                //do not reset score if board gets fully cleared (if bottom left block is white):
+                                if (area[9][0] > 0 && score > highscore) {
                                     Highscore.setText(Long.toString(score));
                                     highscore = score;
-                                }
-                                score = 0;
-                                Score.setText("0");
+                                    score = 0;
+                                    Score.setText("0");
+                                }                                
                                 fillPlayArea(RootFrame, RootPanel, area, PlayArea, Score, Highscore); // draws 2 times when game over... fix later
                             }
 
@@ -286,7 +287,9 @@ public class App {
                         public void actionPerformed(ActionEvent ev) {
                             app.setColorCount(ev.getActionCommand());
                             app.score = 0;
+                            Score.setText("0");
                             app.highscore = 0;
+                            Highscore.setText("0");
                             app.containsMatch = false;
                             app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score, Highscore);
                             RootFrame.validate();
