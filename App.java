@@ -114,7 +114,7 @@ public class App {
                                     score = 0;
                                     Score.setText("Score: 0");
                                 }                                
-                                fillPlayArea(RootFrame, RootPanel, area, PlayArea, Score, Highscore); // draws 2 times when game over... fix later
+                                fillPlayArea(RootFrame, RootPanel, area, PlayArea, Score, Highscore);
                             } else {
 
                             draw(RootFrame, RootPanel, area, PlayArea, Score, Highscore); }
@@ -328,9 +328,9 @@ public class App {
         GameBar.add(ColorCountSelect); 
                 for (int i = 0; i < ColorCount.length; ++i) {
                     ColorCountSelect.add(ColorCount[i]);
+                    if (i < ColorCount.length - 1) ColorCountSelect.addSeparator();
                 }
 
-            //PlayAreaConstraints.add(PlayArea);
         PlayArea.setBackground(Color.LIGHT_GRAY);
         
 
@@ -344,6 +344,16 @@ public class App {
         RootFrame.setLocationRelativeTo(null);
 
         // add event listeners to components:
+
+        // show / hide dropdown menu with shortcut alt + c:
+        ColorCountSelect.setMnemonic(KeyEvent.VK_C);
+
+        //set shortcuts for colors used for each menu item:
+        ColorCount[0].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+        ColorCount[1].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, ActionEvent.CTRL_MASK));
+        ColorCount[2].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4, ActionEvent.CTRL_MASK));
+        ColorCount[3].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, ActionEvent.CTRL_MASK));
+
         RootFrame.addWindowListener(new WindowAdapter() {
             public void windowClosing (WindowEvent ev) {
                 RootFrame.dispose();
