@@ -21,7 +21,10 @@ public class App {
     private long highscore = 0;
 
     //array for color creation:
-    private final String[] colors = {"0xffffff", "0xff0000", "0x00ff00", "0x0000ff", "0xff8800", "0xaa0066"}; 
+    private final String[] colors = {"0xffffff", "0xff0000", "0x00ff00", "0x0000ff", "0xff8800", "0xaa0066"};
+    
+    //integer to determine the colors used:
+    int colorCount = 5;
 
     // variables for play area:
     protected int[][] area = new int[10][10];
@@ -55,7 +58,7 @@ public class App {
 
         for (int row = 0; row < 10; ++row) {
             for (int col = 0; col < 10; ++col) {
-                area[row][col] = (int) (Math.random() * 5 + 1);
+                area[row][col] = (int) (Math.random() * colorCount + 1);
             }
         }
         draw(RootFrame, RootPanel, area, PlayArea, Score, Highscore);
@@ -107,10 +110,11 @@ public class App {
                             // if there are no matches remaining, set new highscore and reset board:
                             if (!containsMatch) {
                                 if (score > highscore) {
-                                     Highscore.setText(Long.toString(score));
-                                     score = 0;
-                                     Score.setText("0");
+                                    Highscore.setText(Long.toString(score));
+                                    highscore = score;
                                 }
+                                score = 0;
+                                Score.setText("0");
                                 fillPlayArea(RootFrame, RootPanel, area, PlayArea, Score, Highscore); // draws 2 times when game over... fix later
                             }
 
@@ -124,7 +128,7 @@ public class App {
             }
         }
     }
-
+    // for debug purposes:
     public void printMaxrix(){
         for (int i = 0; i < 10; ++i){
             for (int j = 0; j < 10; ++j){
@@ -252,34 +256,60 @@ public class App {
                 }
             }
         }
-        System.out.println(containsMatch);
+    }
+
+    //set the amount of colors used and reset cells and (high)score:
+    void setColorCount( String sourceName) {
+        colorCount = Integer.parseInt(sourceName);
     }
 
     public static void main(String[] args) {
 
         App app = new App();
-            //create and customize main window:
+            //initialize components:
         JFrame RootFrame = new JFrame("Same Game");
         JPanel Scoreboard = new JPanel();
             JLabel Score = new JLabel();
             JLabel Highscore = new JLabel();
         JPanel PlayAreaConstraints = new JPanel();
-        JPanel PlayArea = new JPanel();
-    
+            JPanel PlayArea = new JPanel();
+        JMenuBar GameBar = new JMenuBar();
+                JMenu ColorCountSelect = new JMenu("Colors");
+                JMenuItem[] ColorCount = new JMenuItem[4];
+                for (int i = 0; i < 4; ++i) {
+                    ColorCount[i] = new JMenuItem();
+                    ColorCount[i].setText(Integer.toString(i + 2));
+                    ColorCount[i].setName(Integer.toString(i + 2));
 
-        RootFrame.setVisible(true);
+                    //add action listeners:
+                    ColorCount[i].addActionListener( new ActionListener() {
+                        public void actionPerformed(ActionEvent ev) {
+                            app.setColorCount(ev.getActionCommand());
+                            app.score = 0;
+                            app.highscore = 0;
+                            app.containsMatch = false;
+                            app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score, Highscore);
+                            RootFrame.validate();
+                        }
+                    });
+                }
 
         //set layouts of components:
         RootFrame.setLayout(new BorderLayout());
-        Scoreboard.setLayout(new BoxLayout(Scoreboard, BoxLayout.X_AXIS));
-        PlayArea.setLayout(new GridLayout(10,10));
+            PlayAreaConstraints.setLayout(new BorderLayout());
+                Scoreboard.setLayout(new BoxLayout(Scoreboard, BoxLayout.X_AXIS));
+                PlayArea.setLayout(new GridLayout(10,10));
 
         // intitial size settings of components:
         RootFrame.setSize(1000, 800);
-        Score.setPreferredSize(new Dimension(app.screenSize.width/2, app.screenSize.height/10));
+
+        Score.setPreferredSize(new Dimension(app.screenSize.width/2, app.screenSize.height/10)); 
         Highscore.setPreferredSize(new Dimension(app.screenSize.width/2, app.screenSize.height/10));
-        PlayAreaConstraints.setSize(new Dimension( app.screenSize.width, app.screenSize.height * 8 / 10 ) );
-        PlayArea.setSize(new Dimension( app.screenSize.width, app.screenSize.height * 8 / 10 ) );
+
+        PlayAreaConstraints.setMaximumSize(new Dimension( app.screenSize.width, app.screenSize.height * 9 / 10 ) );
+        PlayArea.setSize(new Dimension( app.screenSize.width, PlayArea.getHeight() * 9 / 10 ) );
+
+        ColorCountSelect.setMinimumSize(new Dimension(app.screenSize.width, 50));
 
         //set text algnment of (high)score:
         Score.setVerticalAlignment(SwingConstants.CENTER);
@@ -288,11 +318,17 @@ public class App {
         Highscore.setHorizontalAlignment(SwingConstants.CENTER);
         
         //adding components to parent components:
-        RootFrame.add(Scoreboard, BorderLayout.NORTH);
-            Scoreboard.add(Score);
-            Scoreboard.add(Highscore);
+        RootFrame.add(PlayAreaConstraints, BorderLayout.CENTER);
+                PlayAreaConstraints.add(PlayArea, BorderLayout.CENTER);
+                PlayAreaConstraints.add(Scoreboard, BorderLayout.NORTH);
+                    Scoreboard.add(Score);
+                    Scoreboard.add(Highscore);
+        RootFrame.add(GameBar, BorderLayout.NORTH);
+        GameBar.add(ColorCountSelect); 
+                for (int i = 0; i < ColorCount.length; ++i) {
+                    ColorCountSelect.add(ColorCount[i]);
+                }
 
-        RootFrame.add(PlayArea, BorderLayout.CENTER);
             //PlayAreaConstraints.add(PlayArea);
         PlayArea.setBackground(Color.LIGHT_GRAY);
         
@@ -304,6 +340,7 @@ public class App {
         //override default close operation so the window event listener can 
         //handle it and do some cleanup before closing:
         RootFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        RootFrame.setLocationRelativeTo(null);
 
         // add event listeners to components:
         RootFrame.addWindowListener(new WindowAdapter() {
@@ -326,6 +363,6 @@ public class App {
 
         //initialize play area:
         app.fillPlayArea(RootFrame, PlayArea, app.area, app.Area, Score, Highscore);
-        RootFrame.repaint();
+        RootFrame.setVisible(true);
     }
 }
