@@ -7,12 +7,6 @@ import java.awt.GridLayout;
 import java.awt.event.*;
 import java.util.ArrayList;
 
-/*
- * TODO:
- * App.draw issue in containsMatch-check!
- */
-
-
 public class App {
 
     // local variables off app:
