@@ -273,7 +273,7 @@ public class App {
         JPanel PlayAreaConstraints = new JPanel();
             JPanel PlayArea = new JPanel();
         JMenuBar GameBar = new JMenuBar();
-                JMenu ColorCountSelect = new JMenu("Colors");
+                JMenu ColorCountSelect = new JMenu("Colors (Alt + C)");
                 JMenuItem[] ColorCount = new JMenuItem[4];
                 for (int i = 0; i < 4; ++i) {
                     ColorCount[i] = new JMenuItem();
